@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io;
 use std::io::Write;
+use std::path::Path;
 use crate::config::config::{Text, TextStorage, TYPE};
 
 //this function will simply create the file with a specific name (for now we input it from user but
@@ -19,14 +20,18 @@ pub(crate) fn create_md() -> io::Result<File>{
 }
 
 //so this function will be called inside a loop ofcourse when we do dir parsing for files nice
-pub(crate) fn create_md_from_file(file_name : &str, parent_dir : &str) -> io::Result<File>{
-    let file = File::create(format!("{}.md", parent_dir.to_owned() + file_name))?;
-    Ok(file) //as simple as this :)
-    //this function can extract the name of the file from the argv[2] for now and for later
-    //when we parse each file from the dir, everytime we itr through the file we can just simply
-    //make the name as the name of the current file being processed
-}
+//also it will create a new dir if the file path does not exist 
+pub(crate) fn create_md_from_file(dir: &Path, stem: &str) -> io::Result<File> {
+    let mut path = dir.to_path_buf();
+    path.push(stem);
+    path.set_extension("md");
 
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    File::create(path)
+}
 pub fn get_md_string(text: &Text) -> io::Result<String> {
     let mut string_to_write = String::new();
 
@@ -54,7 +59,7 @@ pub fn get_md_string(text: &Text) -> io::Result<String> {
 }
 
 //this file will have functions that will convert the
-pub fn to_md(file :&mut File, text_store: &TextStorage) -> io::Result<()>{
+pub fn write_to_md(file :&mut File, text_store: &TextStorage) -> io::Result<()>{
     //now this function will read the textstroage and then after reading each Text it will just write
     //it to the file, now we need to have some rules
     for text in text_store {

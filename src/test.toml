@@ -1,5 +1,5 @@
 [hugo]
-loc = "some location"
+loc = "D:/"
 owner = "name"
 date = "some date"
 draft = "false"

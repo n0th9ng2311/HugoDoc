@@ -1,3 +1,7 @@
+// <START FILE LOC>
+// hugo
+// <END FILE LOC>
+
 // !!
 // add(u32, u32) -> u32
 // !!
