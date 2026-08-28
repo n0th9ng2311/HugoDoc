@@ -6,4 +6,4 @@ edition = "2024"
 [dependencies]
 toml = "1.1.4"
 serde = { version = "1.0.229", features = ["derive"] }
-func = "0.1.0"
+walkdir = "2.5"
