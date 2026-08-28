@@ -1,0 +1,27 @@
+[hugo]
+loc = "some location"
+owner = "name"
+date = "some date"
+draft = "false"
+
+[file_loc]
+start = "<START FILE LOC>"
+end = "<END FILE LOC>"
+
+[ignore]
+prefixes = ["// ", "# ", "/*", "*/"] #can add others later
+
+[comment_types.simple_comment]
+start = "!/!"
+end = "!/!"
+txt_type = "NORMAL"
+
+[comment_types.heading]
+start ="!!"
+end = "!!"
+txt_type = "HEADING"
+
+[comment_types.warning]
+start = "w!"
+end = "!w"
+txt_type = "NORMAL"
