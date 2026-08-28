@@ -1,2 +1,2 @@
-pub mod hugoConfig;
 pub mod functions;
+pub mod hugoConfig;

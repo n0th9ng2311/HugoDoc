@@ -1,18 +1,16 @@
-use std::env;
-use std::path::Path;
-use std::str::FromStr;
 use crate::config::config::TextStorage;
 use crate::config::loader::load_config;
-use crate::markdown::conversions::{create_md, create_md_from_file, write_to_md};
+use crate::markdown::conversions::{create_md_from_file, write_to_md};
 use crate::scanner::checker::{get_file_write_loc, parse_file};
+use std::env;
+use std::path::Path;
 use walkdir::WalkDir;
 pub mod config;
-pub mod scanner;
-pub mod markdown;
 pub mod hugo;
+pub mod markdown;
+pub mod scanner;
 
 pub mod testing;
-
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
@@ -31,8 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         parse_file(file_path, &config, &mut stor)?;
 
-        let loc_to_write = get_file_write_loc(&config, file_path)
-            .unwrap_or_else(|| "".to_string());
+        let loc_to_write = get_file_write_loc(&config, file_path).unwrap_or_default();
 
         let mut output_dir = Path::new(&config.hugo_config.loc).to_path_buf();
         if !loc_to_write.is_empty() {
@@ -47,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut file = create_md_from_file(&output_dir, file_stem)?;
 
-        let res = write_to_md(&mut file, &mut stor);
+        let res = write_to_md(&mut file, &stor);
 
         if res.is_ok() {
             println!("Wrote: {}/{}", output_dir.display(), file_stem);
@@ -57,24 +54,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-    //so the main would look something like this
-    /*
-    first collect args
-    get the path of the config file from args[1]
+//so the main would look something like this
+/*
+first collect args
+get the path of the config file from args[1]
 
-    then load the config from that path
-    create a new store
-    NOW if the user has passed in a path that is a file then do the normal steps
-    BUT IF the user has passed a dir, iterate through it while saving its path for depth
-    so if there is a dir like src/conc/basics.rs, then the name would appear as
+then load the config from that path
+create a new store
+NOW if the user has passed in a path that is a file then do the normal steps
+BUT IF the user has passed a dir, iterate through it while saving its path for depth
+so if there is a dir like src/conc/basics.rs, then the name would appear as
 
-    the str passed to the create_md_from_file function + the above till .
-    !!IMP now we need to extract everything till the . to get the complete pathname
-    then just pass it to function
+the str passed to the create_md_from_file function + the above till .
+!!IMP now we need to extract everything till the . to get the complete pathname
+then just pass it to function
 
-    !!FUTURE OPTIMISATION
-    if we have lots of dirs, we may divide tasks into thread and asyn them so you know noice
-     */
+!!FUTURE OPTIMISATION
+if we have lots of dirs, we may divide tasks into thread and asyn them so you know noice
+ */
 
 // fn main() {
 //     let args: Vec<String> = env::args().collect();
@@ -143,15 +140,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 //
 //
 // }
-
-
-
-
-
-
-
-
-
-
-
-
