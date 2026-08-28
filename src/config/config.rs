@@ -40,7 +40,7 @@ pub struct Config{
     #[serde(default)]
     pub ignore: IgnoreConfig,
 
-    #[serde(default)]
+    #[serde(default, rename="hugo")]
     pub hugo_config: HugoConfig,
 
     #[serde(default)]
