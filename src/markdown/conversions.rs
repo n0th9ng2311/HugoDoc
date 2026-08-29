@@ -1,4 +1,5 @@
-use crate::config::config::{TYPE, Text, TextStorage};
+use crate::config::config::{Config, TYPE, Text, TextStorage};
+use crate::hugo::functions::get_hugo_config;
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -34,6 +35,7 @@ pub(crate) fn create_md_from_file(dir: &Path, stem: &str) -> io::Result<File> {
 }
 pub fn get_md_string(text: &Text) -> io::Result<String> {
     let mut string_to_write = String::new();
+    let mut inside_code_block = false;
 
     let prefix = match text.comment_type.txt_type {
         TYPE::HEADING => "# ",
@@ -42,9 +44,19 @@ pub fn get_md_string(text: &Text) -> io::Result<String> {
     };
 
     for line in text.comment.lines() {
-        if line.trim().is_empty() {
+        // Toggle code block state
+        if line.trim_start().starts_with("```") {
+            inside_code_block = !inside_code_block;
+        }
+
+        if inside_code_block {
+            // Inside code block
+            string_to_write.push_str(line);
+            string_to_write.push('\n');
+        } else if line.trim().is_empty() {
             string_to_write.push('\n');
         } else {
+            // Normal line outside code block
             string_to_write.push_str(prefix);
             string_to_write.push_str(line);
             string_to_write.push('\n');
@@ -57,9 +69,28 @@ pub fn get_md_string(text: &Text) -> io::Result<String> {
 
     Ok(string_to_write)
 }
-
 //this file will have functions that will convert the
-pub fn write_to_md(file: &mut File, text_store: &TextStorage) -> io::Result<()> {
+pub fn write_to_md(file: &mut File, text_store: &TextStorage, config: &Config) -> io::Result<()> {
+    //now at the top of each of the markdown files we need to write the initial meta data inside ---
+    let (loc, title, owner, date, tags, draft) = get_hugo_config(config);
+
+    let to_write = format!(
+        r#"title = "{}"
+date = {}
+author = "{}"
+tags = {:?}
+draft = {}"#,
+        title,
+        date.unwrap_or_default(),
+        owner.unwrap_or_default(),
+        tags.unwrap_or_default(),
+        draft
+    );
+
+    file.write_all("---\n".as_bytes())?;
+    file.write_all(to_write.as_bytes())?;
+    file.write_all("\n---\n".as_bytes())?;
+
     //now this function will read the textstroage and then after reading each Text it will just write
     //it to the file, now we need to have some rules
     for text in text_store {

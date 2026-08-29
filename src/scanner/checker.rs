@@ -8,10 +8,10 @@ fn strip_prefixes(line: &str, config: &Config) -> String {
     let trimmed = line.trim_start();
     for prefix in &config.ignore.prefixes {
         if trimmed.starts_with(prefix) {
-            return trimmed[prefix.len()..].trim_start().to_string();
+            return trimmed[prefix.len()..].to_string();
         }
     }
-    trimmed.to_string() // no prefix found
+    line.to_string() // no prefix found
 }
 
 //so this function extracts the location at which we want the file to be at
@@ -50,35 +50,50 @@ pub fn parse_file(
     let mut curr_type: Option<&CommentType> = None;
     let mut buf: Vec<String> = Vec::new();
 
+    let mut inside_code_block = false;
+    let mut line_num = 0;
+
     for line in reader.lines() {
         let raw = line?;
+        line_num += 1;
+
         let stripped = strip_prefixes(&raw, config);
 
+        let trimmed_for_check = stripped.trim_start();
+
+        if trimmed_for_check.starts_with("```") {
+            inside_code_block = !inside_code_block;
+        }
+
+        let line_to_store = if inside_code_block {
+            stripped.to_string() //preserving all the white spaces inside a code block
+        } else {
+            stripped.trim_start().to_string() // trim outside
+        };
+
         if let Some(ctype) = curr_type {
-            if stripped.contains(&ctype.end) {
-                //found the end
+            if trimmed_for_check.contains(&ctype.end) {
                 let comment_txt = buf.join("\n");
                 let text = Text::new(ctype.clone(), comment_txt);
                 storage.add(text);
-
                 curr_type = None;
                 buf.clear();
             } else {
-                //inside the commenet
-                buf.push(stripped);
+                //inside
+                buf.push(line_to_store);
             }
         } else {
-            //not inside a comment checking for a start
-            if let Some((_name, ctype)) = config.check_match(&stripped) {
+            //not inside
+            if let Some((_name, ctype)) = config.check_match(trimmed_for_check) {
                 curr_type = Some(ctype);
-                buf.clear()
+                buf.clear();
             }
         }
     }
 
     if let Some(ctype) = curr_type {
         eprintln!(
-            "Warning: unclosed comment (type '{:?} in {})",
+            "Warning: unclosed comment (type '{:?}') in {}",
             ctype,
             file_path.display()
         );
