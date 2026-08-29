@@ -5,21 +5,6 @@ use std::io;
 use std::io::Write;
 use std::path::Path;
 
-//this function will simply create the file with a specific name (for now we input it from user but
-//later it may be generated automatically based on where the docs/comments are written although this is
-//for later)
-//this function asks for name of the file from the user but another one will just extract it from the
-//file we are currently processing
-pub(crate) fn create_md() -> io::Result<File> {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-
-    let file_name = input.trim();
-    let file = File::create(format!("{}.md", file_name))?;
-
-    Ok(file)
-}
-
 //so this function will be called inside a loop ofcourse when we do dir parsing for files nice
 //also it will create a new dir if the file path does not exist
 pub(crate) fn create_md_from_file(dir: &Path, stem: &str) -> io::Result<File> {
@@ -72,7 +57,7 @@ pub fn get_md_string(text: &Text) -> io::Result<String> {
 //this file will have functions that will convert the
 pub fn write_to_md(file: &mut File, text_store: &TextStorage, config: &Config) -> io::Result<()> {
     //now at the top of each of the markdown files we need to write the initial meta data inside ---
-    let (loc, title, owner, date, tags, draft) = get_hugo_config(config);
+    let (_loc, title, owner, date, tags, draft) = get_hugo_config(config);
 
     let to_write = format!(
         r#"title = "{}"

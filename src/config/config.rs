@@ -1,4 +1,4 @@
-use crate::hugo::hugoConfig::HugoConfig;
+use crate::hugo::hugo_config::HugoConfig;
 use serde::Deserialize;
 use std::collections::HashMap;
 

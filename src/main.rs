@@ -18,7 +18,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input_path = Path::new(&args[2]);
 
     let config = load_config(config_path)?;
-    let mut stor = TextStorage::new();
 
     for entry in WalkDir::new(input_path)
         .into_iter()

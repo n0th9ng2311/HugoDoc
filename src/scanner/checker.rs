@@ -51,14 +51,11 @@ pub fn parse_file(
     let mut buf: Vec<String> = Vec::new();
 
     let mut inside_code_block = false;
-    let mut line_num = 0;
 
     for line in reader.lines() {
         let raw = line?;
-        line_num += 1;
 
         let stripped = strip_prefixes(&raw, config);
-
         let trimmed_for_check = stripped.trim_start();
 
         if trimmed_for_check.starts_with("```") {
