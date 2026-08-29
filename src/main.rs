@@ -26,8 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .filter(|e| e.file_type().is_file())
     {
         let file_path = entry.path();
-
-        parse_file(file_path, &config, &mut stor)?;
+        let mut file_stor = TextStorage::new();
+        parse_file(file_path, &config, &mut file_stor)?;
 
         let loc_to_write = get_file_write_loc(&config, file_path).unwrap_or_default();
 
@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut file = create_md_from_file(&output_dir, file_stem)?;
 
-        let res = write_to_md(&mut file, &stor);
+        let res = write_to_md(&mut file, &file_stor, &config);
 
         if res.is_ok() {
             println!("Wrote: {}/{}", output_dir.display(), file_stem);

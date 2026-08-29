@@ -1,7 +1,9 @@
 [hugo]
 loc = "D:/"
-owner = "name"
-date = "some date"
+title = "an example"
+date = "2026-06-28"
+author = "name"
+tags = []
 draft = "false"
 
 [file_loc]

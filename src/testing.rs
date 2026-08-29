@@ -15,12 +15,16 @@
 // `*warning the addition can overflow!*`
 // !w
 
-// !/!
-// **EXAMPLE:**
-// ```rust
-// let res = add(4,5)
-// ```
-// !/!
+/* !/!
+ **EXAMPLE:**
+ ```rust
+ fn test(){
+    let some = add(5,4);
+    some
+ }
+ ```
+ !/!
+*/
 
 /*
 !/!
