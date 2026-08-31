@@ -1,5 +1,5 @@
 use crate::config::config::{CommentType, Config, Text, TextStorage};
-use std::error::Error;
+use anyhow::{Context, Result};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -16,14 +16,21 @@ fn strip_prefixes(line: &str, config: &Config) -> String {
 
 //so this function extracts the location at which we want the file to be at
 pub fn get_file_write_loc(config: &Config, file_path: &Path) -> Option<String> {
-    let file = File::open(file_path).ok()?;
+    let file = File::open(file_path)
+        .with_context(|| format!("Unable to open file at {:?}", file_path))
+        .ok()?;
     let mut reader = BufReader::new(file);
     let mut lines = Vec::new();
     let limit = 10;
 
     for _ in 0..limit {
         let mut line = String::new();
-        if reader.read_line(&mut line).ok()? == 0 {
+        if reader
+            .read_line(&mut line)
+            .with_context(|| "Unable to read line")
+            .ok()?
+            == 0
+        {
             break;
         }
         let stripped = strip_prefixes(&line, config).trim().to_string();
@@ -39,12 +46,9 @@ pub fn get_file_write_loc(config: &Config, file_path: &Path) -> Option<String> {
 }
 
 //this function should just parse the file and not return the textstorage
-pub fn parse_file(
-    file_path: &Path,
-    config: &Config,
-    storage: &mut TextStorage,
-) -> Result<(), Box<dyn Error>> {
-    let file = File::open(file_path)?;
+pub fn parse_file(file_path: &Path, config: &Config, storage: &mut TextStorage) -> Result<()> {
+    let file =
+        File::open(file_path).with_context(|| format!("Unable to open file at {:?}", file_path))?;
     let reader = BufReader::new(file);
 
     let mut curr_type: Option<&CommentType> = None;

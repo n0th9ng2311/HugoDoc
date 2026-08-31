@@ -1,24 +1,25 @@
 use crate::config::config::{Config, TYPE, Text, TextStorage};
 use crate::hugo::functions::get_hugo_config;
+use anyhow::{Context, Result};
 use std::fs::File;
-use std::io;
 use std::io::Write;
 use std::path::Path;
 
 //so this function will be called inside a loop ofcourse when we do dir parsing for files nice
 //also it will create a new dir if the file path does not exist
-pub(crate) fn create_md_from_file(dir: &Path, stem: &str) -> io::Result<File> {
+pub(crate) fn create_md_from_file(dir: &Path, stem: &str) -> Result<File> {
     let mut path = dir.to_path_buf();
     path.push(stem);
     path.set_extension("md");
 
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create directory {}", parent.display()))?;
     }
 
-    File::create(path)
+    File::create(path.clone()).with_context(|| format!("failed to create file {}", path.display()))
 }
-pub fn get_md_string(text: &Text) -> io::Result<String> {
+pub(crate) fn get_md_string(text: &Text) -> Result<String> {
     let mut string_to_write = String::new();
     let mut inside_code_block = false;
 
@@ -55,9 +56,11 @@ pub fn get_md_string(text: &Text) -> io::Result<String> {
     Ok(string_to_write)
 }
 //this file will have functions that will convert the
-pub fn write_to_md(file: &mut File, text_store: &TextStorage, config: &Config) -> io::Result<()> {
+pub fn write_to_md(file: &mut File, text_store: &TextStorage, config: &Config) -> Result<()> {
     //now at the top of each of the markdown files we need to write the initial meta data inside ---
     let (_loc, title, owner, date, tags, draft) = get_hugo_config(config);
+
+    anyhow::ensure!(!date.is_empty(), "date is required for front matter");
 
     let to_write = format!(
         r#"title = "{}"
@@ -66,23 +69,29 @@ author = "{}"
 tags = {:?}
 draft = {}"#,
         title,
-        date.unwrap_or_default(),
+        date,
         owner.unwrap_or_default(),
         tags.unwrap_or_default(),
         draft
     );
 
-    file.write_all("---\n".as_bytes())?;
-    file.write_all(to_write.as_bytes())?;
-    file.write_all("\n---\n".as_bytes())?;
+    file.write_all("---\n".as_bytes())
+        .with_context(|| "failed first '---' write to file")?;
+    file.write_all(to_write.as_bytes())
+        .with_context(|| "failed header write to file")?;
+    file.write_all("\n---\n".as_bytes())
+        .with_context(|| "failed second '---' write to file")?;
 
     //now this function will read the textstroage and then after reading each Text it will just write
     //it to the file, now we need to have some rules
     for text in text_store {
-        let string_to_write = get_md_string(text)?; //so this function will obtain the string
+        let string_to_write = get_md_string(text)
+            .with_context(|| format!("failed to get markdown string from {:?}", text))?; //so this function will obtain the string
         //in md format
-        file.write_all(string_to_write.as_bytes())?;
-        file.write_all(b"\n\n")?;
+        file.write_all(string_to_write.as_bytes())
+            .with_context(|| format!("failed to write to file {:?}", text))?;
+        file.write_all(b"\n\n")
+            .with_context(|| "failed to write '\n\n\' to file")?;
     }
 
     Ok(())
