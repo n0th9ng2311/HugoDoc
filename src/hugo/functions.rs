@@ -10,7 +10,7 @@ pub(crate) fn get_hugo_config(
     String,
     String,
     Option<String>,
-    Option<String>,
+    String,
     Option<Vec<String>>,
     String,
 ) {
