@@ -2,6 +2,9 @@
 name = "HugoDoc"
 version = "0.1.0"
 edition = "2024"
+description = "A crate to generate markdown files from documentation written as comments directly inside the hugo directory for hosting"
+license = "MIT"
+repository = "https://github.com/n0th9ng2311/HugoDoc"
 
 [dependencies]
 toml = "1.1.4"
